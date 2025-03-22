@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Link Safety Inspector</title>
+  <style>
+    :root {
+      /* Dark theme variables */
+      --primary-color: #1a73e8;
+      --primary-hover: #1557b0;
+      --danger-color: #dc3545;
+      --danger-hover: #c82333;
+      --success-color: #28a745;
+      --success-hover: #218838;
+      --background-dark: #1a1a1a;
+      --background-light: #2d2d2d;
+      --text-primary: #ffffff;
+      --text-secondary: #b3b3b3;
+      --border-color: #404040;
+    }
+
+    /* Light theme variables */
+    [data-theme="light"] {
+      --primary-color: #1a73e8;
+      --primary-hover: #1557b0;
+      --danger-color: #dc3545;
+      --danger-hover: #c82333;
+      --success-color: #28a745;
+      --success-hover: #218838;
+      --background-dark: #ffffff;
+      --background-light: #f8f9fa;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666666;
+      --border-color: #e0e0e0;
+    }
+
+    body {
+      width: 400px;
+      padding: 20px;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: var(--background-dark);
+      color: var(--text-primary);
+      margin: 0;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    h2 {
+      margin: 0;
+      color: var(--text-primary);
+      font-size: 1.5em;
+      font-weight: 500;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .theme-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .theme-toggle {
+      margin-left: auto;
+    }
+
+    .theme-toggle, .system-theme-toggle {
+      background: none;
+      border: none;
+      padding: 8px;
+      cursor: pointer;
+      color: var(--text-primary);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease;
+    }
+
+    .theme-toggle:hover, .system-theme-toggle:hover {
+      background-color: var(--background-light);
+    }
+
+    .theme-toggle svg, .system-theme-toggle svg {
+      width: 20px;
+      height: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    .theme-toggle:hover svg, .system-theme-toggle:hover svg {
+      transform: rotate(15deg);
+    }
+
+    .system-theme-toggle.active {
+      color: var(--primary-color);
+      background-color: var(--background-light);
+    }
+
+    .system-theme-toggle.active svg {
+      transform: rotate(15deg);
+    }
+
+    h3 {
+      margin: 0 0 15px 0;
+      color: var(--text-primary);
+      font-size: 1.2em;
+      font-weight: 500;
+    }
+
+    button {
+      padding: 12px 20px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      background-color: var(--border-color);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.clear-cache {
+      background-color: var(--danger-color);
+    }
+
+    button.clear-cache:hover {
+      background-color: var(--danger-hover);
+    }
+
+    #result {
+      white-space: pre-wrap;
+      margin-top: 15px;
+      padding: 15px;
+      background-color: var(--background-light);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 6px;
+      display: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .success {
+      background-color: rgba(40, 167, 69, 0.1);
+      color: var(--success-color);
+      border: 1px solid var(--success-color);
+    }
+
+    .error {
+      background-color: rgba(220, 53, 69, 0.1);
+      color: var(--danger-color);
+      border: 1px solid var(--danger-color);
+    }
+
+    .cache-stats {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: var(--background-light);
+      border-radius: 6px;
+      font-size: 13px;
+      border: 1px solid var(--border-color);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .cache-stats p {
+      margin: 8px 0;
+      color: var(--text-secondary);
+      transition: color 0.3s ease;
+    }
+
+    .cache-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .cache-controls button {
+      flex: 1;
+      padding: 10px;
+      font-size: 12px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background-color: var(--background-dark);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background-color: var(--primary-color);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--background-dark);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    /* Link styling */
+    a {
+      color: var(--primary-color);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    a:hover {
+      color: var(--primary-hover);
+    }
+
+    /* Loading state */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--primary-color);
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="theme-controls">
+        <button class="system-theme-toggle" id="systemThemeToggle" title="Use system theme">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+          </svg>
+        </button>
+      </div>
+      <h2>AI Link Safety Inspector</h2>
+      <div class="theme-controls">
+        <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <button id="inspectAll">Inspect All Links</button>
+    <button id="inspectSelected">Inspect Selected Link</button>
+    
+    <div id="status" class="status"></div>
+    <div id="result"></div>
+
+    <div class="cache-stats">
+      <h3>Cache Statistics</h3>
+      <div id="cacheStats">
+        Loading cache statistics...
+      </div>
+      <div class="progress-bar">
+        <div id="cacheUsageBar" class="progress-bar-fill"></div>
+      </div>
+      <div class="cache-controls">
+        <button id="refreshStats" class="refresh-stats">Refresh Stats</button>
+        <button id="clearCache" class="clear-cache">Clear Cache</button>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html> 
