@@ -10,16 +10,7 @@ A Chrome extension that uses AI to analyze links for safety. This extension can 
 - Clean and intuitive user interface
 
 ## Installation
-
-1. First, create the required icons:
-   - Create an `icons` folder if it doesn't exist
-   - Create three icon files in the `icons` folder:
-     - `icon16.png` (16x16 pixels)
-     - `icon48.png` (48x48 pixels)
-     - `icon128.png` (128x128 pixels)
-   - You can create these icons using any image editor, or download placeholder icons
-
-2. Load the extension in Chrome:
+1. Load the extension in Chrome:
    - Open Chrome and go to `chrome://extensions/`
    - Enable "Developer mode" in the top right corner
    - Click "Load unpacked" and select the directory containing these files
